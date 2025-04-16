@@ -407,3 +407,13 @@ MigrationBackup/
 .ionide/
 
 # End of https://www.toptal.com/developers/gitignore/api/vs,c
+
+# vscode 설정 제외
+.vscode
+
+# 기타 제외
+assignment1
+sorting
+gen_input
+input.txt
+output.txt
