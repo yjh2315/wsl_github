@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define THRESHOLD 10
 void insertionSort(int a[], int left, int right);
@@ -17,6 +18,9 @@ void heapSort(int a[], int n);
 
 
 int main(int argc, char *argv[]){
+    // 난수 생성 시드 초기화 
+    srand((unsigned)time(NULL));
+
     FILE *ptr_input = fopen(argv[1], "r");
     
     //input 파일 열기
@@ -143,6 +147,8 @@ void merge(int a[], int left, int mid, int right)
     int n2 = right - mid;
     int *L = (int *)malloc(n1 * sizeof(int));
     int *R = (int *)malloc(n2 * sizeof(int));
+
+    //정렬된 왼쪽 파트와 오른쪽 파트를 동적할당한 추가 공간에 배치
     for (int i = 0; i < n1; i++)
     {
         L[i] = a[left + i];
@@ -151,7 +157,10 @@ void merge(int a[], int left, int mid, int right)
     {
         R[j] = a[mid + 1 + j];
     }
+
+    //두 파트에서 각각 index를 i, j로 관리하며 값이 작은 것을 먼저 작성하고 index를 증가시킨다. 
     int i = 0, j = 0, k = left;
+    //index가 각 파트의 크기 안일경우
     while (i < n1 && j < n2)
     {
         if (L[i] <= R[j])
@@ -159,6 +168,8 @@ void merge(int a[], int left, int mid, int right)
         else
             a[k++] = R[j++];
     }
+
+    //아래는 한 파트가 다른 파트보다 클 경우에 비교연산 없이 남은 요소들은 가장 큰 요소들이기에 a에 차례대로 쌓는다.
     while (i < n1)
     {
         a[k++] = L[i++];
@@ -174,14 +185,18 @@ void merge(int a[], int left, int mid, int right)
 // Merge sort에 구간 크기가 THRESHOLD 이하이면 Insertion sort를 사용하는 함수
 void mergeInsertionSort(int a[], int left, int right)
 {
+    //THRESHOLD와 크기를 비교해서 이보다 작을때는 insertion sort를 사용용
     if (right - left + 1 <= THRESHOLD)
     {
         insertionSort(a, left, right);
         return;
     }
+    
+    //실질적인 mergesort 부분. mid를 기준으로 merge 두개로 문제를 나눔
     int mid = left + (right - left) / 2;
     mergeInsertionSort(a, left, mid);
     mergeInsertionSort(a, mid + 1, right);
+    //mergesort에서 문제가 모두 나뉘고 난 뒤 insertionsort로 각 정렬된 part를 merge한다.
     merge(a, left, mid, right);
 }
 
@@ -205,33 +220,43 @@ void swap(int *a, int *b)
     *b = temp;
 }
 
-// median-of-three를 이용해 left, mid, right 값 중 중앙값의 인덱스를 반환
-int medianOfThree(int a[], int left, int right)
+int randomMedianPivot(int a[], int left, int right)
 {
-    int mid = left + (right - left) / 2;
-    if (a[left] > a[mid])
-        swap(&a[left], &a[mid]);
-    if (a[left] > a[right])
-        swap(&a[left], &a[right]);
-    if (a[mid] > a[right])
-        swap(&a[mid], &a[right]);
-    return mid; // a[mid]가 중앙값
+    int indices[3];
+    int range = right - left + 1;
+    indices[0] = left + rand() % range;
+    indices[1] = left + rand() % range;
+    indices[2] = left + rand() % range;
+
+    // 세 인덱스를 a 배열의 값에 따라 오름차순 정렬
+    if (a[indices[0]] > a[indices[1]])
+    {
+        swap(&indices[0], &indices[1]);
+    }
+    if (a[indices[0]] > a[indices[2]])
+    {
+        swap(&indices[0], &indices[2]);
+    }
+    if (a[indices[1]] > a[indices[2]])
+    {
+        swap(&indices[1], &indices[2]);
+    }
+    // 정렬 후 중앙값은 indices[1]
+    return indices[1];
 }
 
 // 파티션 함수: median-of-three로 선택한 피벗을 right-1 위치로 옮기고 분할 진행
 int partition(int a[], int left, int right)
 {
-    int medianIndex = medianOfThree(a, left, right); // 피벗을 right-1 위치로 이동
-    swap(&a[medianIndex], &a[right - 1]);
+    int medianIndex = randomMedianPivot(a, left, right); // 피벗을 median of three의 결과값으로 선택
+    swap(&a[medianIndex], &a[right - 1]);               // 피벗을 가장 오른쪽에 위치치
     int pivot = a[right - 1];
     int i = left, j = right - 1;
     while (1)
     {
-        while (a[++i] < pivot)
-            ;
-        while (a[--j] > pivot)
-            ;
-        if (i >= j)
+        while (a[++i] < pivot);                         //왼쪽에서부터 피벗보다 큰 값을 찾고(i를 찾고)
+        while (a[--j] > pivot);                         //오른쪽에서부터 피벗보다 작은은 값을 찾아(j를 찾고)
+        if (i >= j)                                     //i>=j일 경우(이미 큰, 작은 파트가 분배되어진 상황 - 종료조건)가 아니라면 swap 시행
             break;
         swap(&a[i], &a[j]);
     } // 피벗을 최종 위치로 이동
@@ -243,42 +268,20 @@ int partition(int a[], int left, int right)
 void randomizedQuickSort(int a[], int left, int right)
 {
     while (left < right)
-    { // 작은 구간인 경우 Insertion sort로 정렬 (구간 크기가 10 미만인 경우)
-        if (right - left + 1 < 10)
+    {
+        int pivotIndex = partition(a, left, right); // 더 작은 부분 배열을 먼저 재귀 호출하여 호출 깊이를 줄임
+        if (pivotIndex - left < right - pivotIndex)
         {
-            int i, j, key;
-            for (i = left + 1; i <= right; i++)
-            {
-                key = a[i];
-                j = i - 1;
-                while (j >= left && a[j] > key)
-                {
-                    a[j + 1] = a[j];
-                    j--;
-                }
-                a[j + 1] = key;
-            }
-            break;
+            randomizedQuickSort(a, left, pivotIndex - 1);
+            left = pivotIndex + 1; // tail recursion 제거: 반복문으로 처리
         }
         else
         {
-            int pivotIndex = partition(a, left, right); // 더 작은 부분 배열을 먼저 재귀 호출하여 호출 깊이를 줄임
-            if (pivotIndex - left < right - pivotIndex)
-            {
-                randomizedQuickSort(a, left, pivotIndex - 1);
-                left = pivotIndex + 1; // tail recursion 제거: 반복문으로 처리
-            }
-            else
-            {
-                randomizedQuickSort(a, pivotIndex + 1, right);
-                right = pivotIndex - 1;
-            }
+            randomizedQuickSort(a, pivotIndex + 1, right);
+            right = pivotIndex - 1;
         }
     }
 }
-
-
-
 
 
 
