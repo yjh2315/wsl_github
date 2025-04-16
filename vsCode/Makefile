@@ -1,10 +1,10 @@
 all: compile run
 
-compile: sorting.c
-	gcc sorting.c -o sorting
+compile: Assignment1_20225889.c
+	gcc Assignment1_20225889.c -o Assignment1_20225889
 
-run: sorting
-	./sorting input.txt output.txt
+run: Assignment1_20225889
+	./Assignment1_20225889 input.txt output.txt
 
-clean: sorting
-	rm sorting
+clean: Assignment1_20225889
+	rm Assignment1_20225889

@@ -86,7 +86,6 @@ int main(int argc, char *argv[]){
         free(arr_heap);
         free(arr_mergeI);
         free(arr_randQ);
-        fclose(ptr_output);
         return 1;
     }
 
@@ -249,19 +248,18 @@ int randomMedianPivot(int a[], int left, int right)
 int partition(int a[], int left, int right)
 {
     int medianIndex = randomMedianPivot(a, left, right); // 피벗을 median of three의 결과값으로 선택
-    swap(&a[medianIndex], &a[right - 1]);               // 피벗을 가장 오른쪽에 위치치
-    int pivot = a[right - 1];
-    int i = left, j = right - 1;
-    while (1)
-    {
-        while (a[++i] < pivot);                         //왼쪽에서부터 피벗보다 큰 값을 찾고(i를 찾고)
-        while (a[--j] > pivot);                         //오른쪽에서부터 피벗보다 작은은 값을 찾아(j를 찾고)
-        if (i >= j)                                     //i>=j일 경우(이미 큰, 작은 파트가 분배되어진 상황 - 종료조건)가 아니라면 swap 시행
-            break;
-        swap(&a[i], &a[j]);
-    } // 피벗을 최종 위치로 이동
-    swap(&a[i], &a[right - 1]);
-    return i;
+    swap(&a[medianIndex], &a[right]);               // 피벗을 가장 오른쪽에 위치
+    int pivot = a[right];                           // 피벗값을 저장하고
+    int i = left-1;                                 // i 초기값 설정 (모두 pivot보다 작다면 return i+1로 0번째 자리에 피벗이 들어감)
+    
+    for(int j=left; j<right; j++){                  // 왼쪽부터 피봇 전까지
+        if(a[j]<=pivot){                            // 피봇보다 작은 갯수를 count하고 count한 자리와 자리 바꾸기(해당 조건을 만족x -> pivot보다 큰 값이기에 i값 증가x)
+            i=i+1;
+            swap(&a[i],&a[j]);
+        }
+    }
+    swap(&a[i+1], &a[right]);
+    return i+1;
 }
 
 // tail recursion 제거 기법을 적용한 randomized quick sort
@@ -273,7 +271,7 @@ void randomizedQuickSort(int a[], int left, int right)
         if (pivotIndex - left < right - pivotIndex)
         {
             randomizedQuickSort(a, left, pivotIndex - 1);
-            left = pivotIndex + 1; // tail recursion 제거: 반복문으로 처리
+            left = pivotIndex + 1;                  // tail recursion 제거: 긴 부분은 반복문으로 처리 -> 다시 partition 이후 작은 값은 재귀/큰 값은 반복문.
         }
         else
         {
@@ -309,25 +307,25 @@ void randomizedQuickSort(int a[], int left, int right)
 // maxHeapify: index i를 루트로 하는 서브트리에서 최대 힙 성질을 유지하도록 조정한다.
 void maxHeapify(int a[], int i, int heapSize)
 {
-    int l = LEFT(i);
+    int l = LEFT(i);        //자식 인덱스 계산
     int r = RIGHT(i);
-    int largest = i;
+    int largest = i;        //루트
     if (l < heapSize && a[l] > a[largest])
     {
         largest = l;
     }
     if (r < heapSize && a[r] > a[largest])
     {
-        largest = r;
+        largest = r;        //루트 인덱스 갱신
     }
     if (largest != i)
     {
-        // swap a[i]와 a[largest] 교환
+        // a[i]와 a[largest] 교환
         int temp = a[i];
         a[i] = a[largest];
         a[largest] = temp;
         // 재귀 호출로 하위 트리도 정리
-        maxHeapify(a, largest, heapSize);
+        maxHeapify(a, largest, heapSize);       //이전 root가 현재 위치한 자리 기준으로 다시 heapify -> 아래도 maxheap 성질 만족
     }
 }
 
