@@ -3,10 +3,10 @@
 #include <time.h>
 
 int main(int argc, char *argv[]){
-    int n = 10;
+    int n = 100;
     
     // input.txt 파일을 쓰기 모드로 연다.
-    FILE *fp = fopen("input.txt", "w");
+    FILE *fp = fopen(argv[1], "w");
     if (fp == NULL) {
         printf("Cannot open input.txt for writing.\n");
         return 1;

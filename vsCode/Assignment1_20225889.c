@@ -13,7 +13,7 @@ int partition(int a[], int left, int right);
 void randomizedQuickSort(int a[], int left, int right);
 
 void maxHeapify(int a[], int i, int heapSize);
-void buildMaxHeap(int a[], int n);
+void makeMaxHeap(int a[], int n);
 void heapSort(int a[], int n);
 
 
@@ -221,36 +221,36 @@ void swap(int *a, int *b)
 
 int randomMedianPivot(int a[], int left, int right)
 {
-    int indices[3];
+    int prePivot[3];
     int range = right - left + 1;
-    indices[0] = left + rand() % range;
-    indices[1] = left + rand() % range;
-    indices[2] = left + rand() % range;
+    prePivot[0] = left + rand() % range;
+    prePivot[1] = left + rand() % range;
+    prePivot[2] = left + rand() % range;
 
     // 세 인덱스를 a 배열의 값에 따라 오름차순 정렬
-    if (a[indices[0]] > a[indices[1]])
+    if (a[prePivot[0]] > a[prePivot[1]])
     {
-        swap(&indices[0], &indices[1]);
+        swap(&prePivot[0], &prePivot[1]);
     }
-    if (a[indices[0]] > a[indices[2]])
+    if (a[prePivot[0]] > a[prePivot[2]])
     {
-        swap(&indices[0], &indices[2]);
+        swap(&prePivot[0], &prePivot[2]);
     }
-    if (a[indices[1]] > a[indices[2]])
+    if (a[prePivot[1]] > a[prePivot[2]])
     {
-        swap(&indices[1], &indices[2]);
+        swap(&prePivot[1], &prePivot[2]);
     }
-    // 정렬 후 중앙값은 indices[1]
-    return indices[1];
+    // 정렬 후 중앙값은 prePivot[1]
+    return prePivot[1];
 }
 
-// 파티션 함수: median-of-three로 선택한 피벗을 right-1 위치로 옮기고 분할 진행
+// 파티션 함수: median-of-three로 선택한 피봇을 right-1 위치로 옮기고 분할 진행
 int partition(int a[], int left, int right)
 {
-    int medianIndex = randomMedianPivot(a, left, right); // 피벗을 median of three의 결과값으로 선택
-    swap(&a[medianIndex], &a[right]);               // 피벗을 가장 오른쪽에 위치
-    int pivot = a[right];                           // 피벗값을 저장하고
-    int i = left-1;                                 // i 초기값 설정 (모두 pivot보다 작다면 return i+1로 0번째 자리에 피벗이 들어감)
+    int medianIndex = randomMedianPivot(a, left, right); // 피봇을 median of three의 결과값으로 선택
+    swap(&a[medianIndex], &a[right]);               // 피봇을 가장 오른쪽에 위치
+    int pivot = a[right];                           // 피봇값을 저장하고
+    int i = left-1;                                 // i 초기값 설정 (모두 pivot보다 작다면 return i+1로 0번째 자리에 피봇이 들어감)
     
     for(int j=left; j<right; j++){                  // 왼쪽부터 피봇 전까지
         if(a[j]<=pivot){                            // 피봇보다 작은 갯수를 count하고 count한 자리와 자리 바꾸기(해당 조건을 만족x -> pivot보다 큰 값이기에 i값 증가x)
@@ -262,7 +262,7 @@ int partition(int a[], int left, int right)
     return i+1;
 }
 
-// tail recursion 제거 기법을 적용한 randomized quick sort
+// tail recursion 기법을 적용한 randomized quick sort
 void randomizedQuickSort(int a[], int left, int right)
 {
     while (left < right)
@@ -304,7 +304,7 @@ void randomizedQuickSort(int a[], int left, int right)
 #define LEFT(i) (2 * (i) + 1)
 #define RIGHT(i) (2 * (i) + 2)
 
-// maxHeapify: index i를 루트로 하는 서브트리에서 최대 힙 성질을 유지하도록 조정한다.
+// index i를 루트로 하는 트리에서 max heap 성질을 유지하도록 하는 function
 void maxHeapify(int a[], int i, int heapSize)
 {
     int l = LEFT(i);        //자식 인덱스 계산
@@ -329,8 +329,8 @@ void maxHeapify(int a[], int i, int heapSize)
     }
 }
 
-// buildMaxHeap: 배열을 최대 힙 구조로 만든다.
-void buildMaxHeap(int a[], int n)
+// makeMaxHeap: 배열을 최대 힙 구조로 만든다.
+void makeMaxHeap(int a[], int n)
 {
     int i;
     for (i = n / 2 - 1; i >= 0; i--)
@@ -343,7 +343,7 @@ void buildMaxHeap(int a[], int n)
 void heapSort(int a[], int n)
 {
     int heapSize = n;
-    buildMaxHeap(a, n);
+    makeMaxHeap(a, n);
     // 배열의 맨 뒤에서부터 정렬 수행
     for (int i = n - 1; i > 0; i--)
     {
